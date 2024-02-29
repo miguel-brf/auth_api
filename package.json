@@ -1,0 +1,27 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.3"
+  },
+  "scripts": {
+    "devAuth": "nodemon src/authServer.js",
+    "dev": "nodemon src/index.js",
+    "startAuth": "node src/authServer.js",
+    "start": "node src/index.js",
+    "startAll": "concurrently \"npm start\" \"npm run startAuth\""
+  },
+  "type": "module",
+  "name": "jwt-project",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
