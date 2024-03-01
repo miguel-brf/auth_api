@@ -57,7 +57,7 @@ function generateRefreshToken(user) {
   return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '4h' });
 }
 
-const PORT = process.env.AUTH_PORT || 4000;
+const PORT = process.env.AUTH_PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Authentication server running on port ${PORT}`);
