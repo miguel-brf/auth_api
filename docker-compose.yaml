@@ -21,3 +21,4 @@ services:
 
 networks:
   auth-network:
+    external: true

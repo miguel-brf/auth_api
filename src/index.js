@@ -32,7 +32,8 @@ function authenticateToken(req, res, next) {
 
   if (token === undefined) return res.sendStatus(401);
 
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, data) => {
+  const ACCESS_KEY_PUBLIC = fs.readFileSync('public.key', 'utf-8');
+  jwt.verify(token, ACCESS_KEY_PUBLIC, (err, data) => {
     if (err || data.scope !== process.env.SCOPE) return res.sendStatus(403);
 
     req.user = data;

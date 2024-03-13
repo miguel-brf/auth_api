@@ -1,7 +1,29 @@
 import cors from 'cors';
+import { generateKeyPairSync } from 'crypto';
 import dotenv from 'dotenv';
 import express from 'express';
+import fs from 'fs';
 import jwt from 'jsonwebtoken';
+import pemJwk from 'pem-jwk';
+
+function generateAndSaveRS256KeyPair() {
+  const { privateKey, publicKey } = generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: {
+      type: 'spki',
+      format: 'pem',
+    },
+    privateKeyEncoding: {
+      type: 'pkcs8',
+      format: 'pem',
+    },
+  });
+
+  fs.writeFileSync('private.key', privateKey);
+  fs.writeFileSync('public.key', publicKey);
+}
+
+generateAndSaveRS256KeyPair();
 
 dotenv.config();
 
@@ -11,7 +33,7 @@ app.use(cors());
 
 let refreshTokens = [];
 
-app.post('/token', (req, res) => {
+app.post('/refresh', (req, res) => {
   const refreshToken = req.body.token;
 
   if (refreshToken === undefined) return res.sendStatus(401);
@@ -26,13 +48,25 @@ app.post('/token', (req, res) => {
   });
 });
 
-app.delete('/logout', (req, res) => {
+app.get('/verify', (req, res) => {
+  const ACCESS_KEY_PUBLIC = fs.readFileSync('public.key', 'utf-8');
+  const jwk = pemJwk.pem2jwk(ACCESS_KEY_PUBLIC);
+  jwk.kid = 'unique';
+  jwk.use = 'sig';
+
+  const response = {
+    keys: [jwk],
+  };
+  res.json(response);
+});
+
+app.delete('/sign-out', (req, res) => {
   console.log(req.body);
   refreshTokens = refreshTokens.filter((token) => token !== req.body.token);
   res.sendStatus(204);
 });
 
-app.post('/login', (req, res) => {
+app.post('/', (req, res) => {
   // Authenticate User
 
   const username = req.body.username;
@@ -50,7 +84,16 @@ function genDataForAccessToken(name) {
 }
 
 function generateAccessToken(data) {
-  return jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5m' });
+  const ACCESS_KEY_PRIVATE = fs.readFileSync('private.key', 'utf-8');
+  console.log(
+    '🚀 ~ generateAccessToken ~ ACCESS_KEY_PRIVATE:',
+    ACCESS_KEY_PRIVATE
+  );
+
+  return jwt.sign(data, ACCESS_KEY_PRIVATE, {
+    algorithm: 'RS256',
+    expiresIn: '5m',
+  });
 }
 
 function generateRefreshToken(user) {
